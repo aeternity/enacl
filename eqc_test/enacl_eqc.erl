@@ -312,10 +312,20 @@ prop_afternm_correct() ->
 %% SIGNATURES
 %% ----------
 
+sign_keypair_seed() ->
+    binary(enacl:sign_keypair_seed_size()).
+
 prop_sign_keypair() ->
     ?FORALL(_D, return(dummy),
       begin
         #{ public := _, secret := _ } = enacl:sign_keypair(),
+        true
+      end).
+
+prop_sign_seed_keypair() ->
+    ?FORALL(Seed, sign_keypair_seed(),
+      begin
+        #{ public := _, secret := _ } = enacl:sign_seed_keypair(Seed),
         true
       end).
 
@@ -336,7 +346,8 @@ sign_keypair_bad() ->
     end).
 
 sign_keypair_good() ->
-  return(enacl:sign_keypair()).
+    oneof([return(enacl:sign_keypair()),
+           ?LET(Seed, sign_keypair_seed(), return(enacl:sign_seed_keypair(Seed)))]).
 
 sign_keypair() ->
   ?FAULT(sign_keypair_bad(), sign_keypair_good()).
