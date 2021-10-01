@@ -1,7 +1,7 @@
 #include <sodium.h>
+#include <string.h>
 
 #include <erl_nif.h>
-
 #include "enacl.h"
 #include "ed25519.h"
 
