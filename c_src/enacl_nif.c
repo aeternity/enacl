@@ -257,6 +257,12 @@ static ErlNifFunc nif_funcs[] = {
     {"crypto_secretbox_open_b", 3, enacl_crypto_secretbox_open},
     erl_nif_dirty_job_cpu_bound_macro("crypto_secretbox_open", 3,
                                       enacl_crypto_secretbox_open),
+    {"crypto_secretbox_easy_b", 3, enacl_crypto_secretbox_easy},
+    erl_nif_dirty_job_cpu_bound_macro("crypto_secretbox_easy", 3,
+                                      enacl_crypto_secretbox_easy),
+    {"crypto_secretbox_open_easy_b", 3, enacl_crypto_secretbox_open_easy},
+    erl_nif_dirty_job_cpu_bound_macro("crypto_secretbox_open_easy", 3,
+                                      enacl_crypto_secretbox_open_easy),
 
     {"crypto_stream_chacha20_KEYBYTES", 0,
      enacl_crypto_stream_chacha20_KEYBYTES},

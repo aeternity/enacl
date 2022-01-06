@@ -550,6 +550,44 @@ prop_secretbox_failure_integrity() ->
         equals(Err, {error, failed_verification})
       end).
 
+secretbox_easy(Msg, Nonce, Key) ->
+  try enacl:secretbox_easy(Msg, Nonce, Key)
+  catch error:badarg -> badarg
+  end.
+
+secretbox_open_easy(Msg, Nonce, Key) ->
+  try enacl:secretbox_open_easy(Msg, Nonce, Key)
+  catch error:badarg -> badarg
+  end.
+
+prop_secretbox_easy_correct() ->
+    ?FORALL({Msg, Nonce, Key},
+            {?FAULT_RATE(1, 40, g_iodata()),
+             ?FAULT_RATE(1, 40, nonce()),
+             ?FAULT_RATE(1, 40, secret_key())},
+      begin
+        case v_iodata(Msg) andalso nonce_valid(Nonce) andalso secret_key_valid(Key) of
+          true ->
+             CipherText = enacl:secretbox_easy(Msg, Nonce, Key),
+             {ok, DecodedMsg} = enacl:secretbox_open_easy(CipherText, Nonce, Key),
+             equals(iolist_to_binary(Msg), DecodedMsg);
+          false ->
+             case secretbox_easy(Msg, Nonce, Key) of
+               badarg -> true;
+               Res ->
+                 failure(secretbox_open_easy(Res, Nonce, Key))
+             end
+        end
+      end).
+
+prop_secretbox_easy_failure_integrity() ->
+    ?FORALL({Msg, Nonce, Key}, {g_iodata(), nonce(), secret_key()},
+      begin
+        CipherText = enacl:secretbox_easy(Msg, Nonce, Key),
+        Err = enacl:secretbox_open_easy([<<"x">>, CipherText], Nonce, Key),
+        equals(Err, {error, failed_verification})
+      end).
+
 %% AEAD ChaCha20Poly1305
 %% ------------------------------------------------------------
 %% * aead_chacha20poly1305_encrypt/4,

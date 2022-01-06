@@ -59,6 +59,8 @@
          secretbox_NONCEBYTES/0,
          secretbox/3,
          secretbox_open/3,
+         secretbox_easy/3,
+         secretbox_open_easy/3,
 
          %% No Tests!
          stream_chacha20_KEYBYTES/0,
@@ -848,6 +850,50 @@ secretbox_open(CipherText, Nonce, Key) ->
             bump(R, ?SECRETBOX_OPEN_REDUCTIONS, ?SECRETBOX_SIZE, K);
         _ ->
             enacl_nif:crypto_secretbox_open([?S_BOXZEROBYTES, CipherText], Nonce, Key)
+    end.
+
+%% @doc secretbox_easy/3 encrypts a message with a key (and nonce)
+%%
+%% Given a `Msg', a `Nonce' and a `Key' encrypt the message with the Key while taking the
+%% nonce into consideration. `easy' refers to not having to take padding, etc. into
+%% account. The function returns the Box obtained from the encryption.
+%% @end
+-spec secretbox_easy(Msg, Nonce, Key) -> Box
+    when
+      Msg :: iodata(),
+      Nonce :: binary(),
+      Key :: binary(),
+      Box :: binary().
+secretbox_easy(Msg, Nonce, Key) ->
+    case iolist_size(Msg) of
+        K when K =< ?SECRETBOX_SIZE ->
+            bump(enacl_nif:crypto_secretbox_easy_b(Msg, Nonce, Key),
+                 ?SECRETBOX_REDUCTIONS,
+                 ?SECRETBOX_SIZE,
+                 K);
+        _ ->
+            enacl_nif:crypto_secretbox_easy(Msg, Nonce, Key)
+    end.
+
+%% @doc secretbox_open_easy/3 opens a sealed box.
+%%
+%% Given a boxed `CipherText' and given we know the used `Nonce' and `Key' we can open the box
+%% to obtain the `Msg' within.  `easy' refers to not having to take padding, etc. into
+%% account. Returns either `{ok, Msg}' or `{error, failed_verification}'.
+%% @end
+-spec secretbox_open_easy(CipherText, Nonce, Key) -> {ok, Msg} | {error, failed_verification}
+    when
+      CipherText :: iodata(),
+      Nonce :: binary(),
+      Key :: binary(),
+      Msg :: binary().
+secretbox_open_easy(CipherText, Nonce, Key) ->
+    case iolist_size(CipherText) of
+        K when K =< ?SECRETBOX_SIZE ->
+            R = enacl_nif:crypto_secretbox_open_easy_b(CipherText, Nonce, Key),
+            bump(R, ?SECRETBOX_OPEN_REDUCTIONS, ?SECRETBOX_SIZE, K);
+        _ ->
+            enacl_nif:crypto_secretbox_open_easy(CipherText, Nonce, Key)
     end.
 
 %% @doc secretbox_NONCEBYTES()/0 returns the size of the secretbox nonce
